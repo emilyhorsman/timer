@@ -14,7 +14,7 @@ printCurrentTime :: Int -> IO ()
 printCurrentTime startTime = do
   t <- getCurrentTime
   let dT = t - startTime
-  threadDelay 1000000 >> putStr ("\r" ++ formatMicroseconds dT)
+  putStr ("\r" ++ formatMicroseconds dT) >> threadDelay 1000000
 
 
 timer :: IO ()
