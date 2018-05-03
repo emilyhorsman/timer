@@ -4,9 +4,12 @@ import           Control.Concurrent      (forkIO, killThread, myThreadId,
                                           threadDelay)
 import           Control.Concurrent.MVar (MVar, newEmptyMVar, putMVar, takeMVar)
 import           Control.Monad           (forever)
-import           Data.List               (uncons)
+import           Data.List               (uncons, intercalate)
 import           Data.Maybe              (maybe)
-import           Lib                     (formatMicroseconds, getCurrentTime)
+import           Data.Time               (UTCTime)
+import           Lib                     (Time, formatAbsoluteDate,
+                                          formatAbsoluteTime, formatDelta,
+                                          getCurrentTime)
 import           System.Environment      (getArgs)
 import           System.Exit             (die)
 import           System.IO               (BufferMode (NoBuffering),
@@ -14,11 +17,10 @@ import           System.IO               (BufferMode (NoBuffering),
 import           System.Posix.Signals    (Handler (CatchOnce), installHandler,
                                           sigINT)
 
-tick :: Int -> IO ()
+tick :: Time a => a -> IO ()
 tick startTime = do
   t <- getCurrentTime
-  let dT = t - startTime
-  putStr ("\r" ++ formatMicroseconds dT) >> threadDelay 1000000
+  putStr ("\r" ++ formatDelta startTime t) >> threadDelay 1000000
 
 
 waitForInterrupt :: IO (MVar ())
@@ -39,10 +41,26 @@ getCode = do
   return $ fst <$> uncons args
 
 
+handleCompletion :: Time a => Maybe String -> a -> a -> IO ()
+handleCompletion Nothing _ _ = return ()
+handleCompletion (Just code) startTime finishTime =
+  let
+    columns =
+      [ formatAbsoluteDate startTime
+      , code
+      , formatAbsoluteTime startTime
+      , formatAbsoluteTime finishTime
+      ]
+  in
+    putStrLn $ "\n" ++ intercalate "," columns
+
+
 main = do
   code <- getCode
   maybe (die "Usage: <code>") putStrLn code
-  startTime <- getCurrentTime
+  startTime <- getCurrentTime :: IO UTCTime
   hSetBuffering stdout NoBuffering
   blockUntilInterrupt $ forkIO $ forever $ tick startTime
+  finishTime <- getCurrentTime :: IO UTCTime
+  handleCompletion code startTime finishTime
   putStrLn "\nExiting Main!"
