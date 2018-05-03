@@ -5,6 +5,8 @@ import           Control.Concurrent      (forkIO, killThread, myThreadId,
 import           Control.Concurrent.MVar (MVar, newEmptyMVar, putMVar, takeMVar)
 import           Control.Monad           (forever)
 import           Lib                     (formatMicroseconds, getCurrentTime)
+import           System.IO               (BufferMode (NoBuffering),
+                                          hSetBuffering, stdout)
 import           System.Posix.Signals    (Handler (CatchOnce), installHandler,
                                           sigINT)
 
@@ -33,5 +35,6 @@ blockUntilInterrupt computation =
 
 
 main = do
+  hSetBuffering stdout NoBuffering
   blockUntilInterrupt $ forkIO timer
   putStrLn "\nExiting Main!"
