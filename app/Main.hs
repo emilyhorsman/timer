@@ -4,7 +4,11 @@ import           Control.Concurrent      (forkIO, killThread, myThreadId,
                                           threadDelay)
 import           Control.Concurrent.MVar (MVar, newEmptyMVar, putMVar, takeMVar)
 import           Control.Monad           (forever)
+import           Data.List               (uncons)
+import           Data.Maybe              (maybe)
 import           Lib                     (formatMicroseconds, getCurrentTime)
+import           System.Environment      (getArgs)
+import           System.Exit             (die)
 import           System.IO               (BufferMode (NoBuffering),
                                           hSetBuffering, stdout)
 import           System.Posix.Signals    (Handler (CatchOnce), installHandler,
@@ -34,7 +38,15 @@ blockUntilInterrupt computation =
   waitForInterrupt >>= (\v -> computation >> takeMVar v)
 
 
+getCode :: IO (Maybe String)
+getCode = do
+  args <- getArgs
+  return $ fst <$> uncons args
+
+
 main = do
+  code <- getCode
+  maybe (die "Usage: <code>") putStrLn code
   hSetBuffering stdout NoBuffering
   blockUntilInterrupt $ forkIO timer
   putStrLn "\nExiting Main!"
