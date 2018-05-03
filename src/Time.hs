@@ -1,20 +1,21 @@
 module Time
     ( getCurrentTime
     , Time
-    , formatAbsoluteDate
-    , formatAbsoluteTime
+    , formatAbsoluteDateTime
+    , parseAbsoluteDateTime
     , formatDelta
     ) where
 
-import qualified Data.Time   as DT
-import           Text.Printf (printf)
+import           Control.Monad.Fail (MonadFail)
+import qualified Data.Time          as DT
+import           Text.Printf        (printf)
 
 
 class Time a where
   getCurrentTime :: IO a
   formatDelta :: a -> a -> String
-  formatAbsoluteDate :: a -> String
-  formatAbsoluteTime :: a -> String
+  formatAbsoluteDateTime :: a -> String
+  parseAbsoluteDateTime :: MonadFail m => String -> m a
 
 
 instance Time DT.UTCTime where
@@ -30,8 +31,8 @@ instance Time DT.UTCTime where
     in
       printf "%dh%02dm%02ds" hours minutes seconds
 
-  formatAbsoluteDate =
-    DT.formatTime DT.defaultTimeLocale "%Y-%m-%d"
+  formatAbsoluteDateTime =
+    DT.formatTime DT.defaultTimeLocale $ DT.iso8601DateFormat $ Just "%H:%M:%S"
 
-  formatAbsoluteTime =
-    DT.formatTime DT.defaultTimeLocale "%H:%M:%S"
+  parseAbsoluteDateTime =
+    DT.parseTimeM False DT.defaultTimeLocale $ DT.iso8601DateFormat $ Just "%H:%M:%S"
