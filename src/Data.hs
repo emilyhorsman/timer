@@ -43,8 +43,8 @@ createStorage path =
   let
     empty = [] :: [Entry]
   in
-    doesFileExist path >>= bool (return ())
-      (B'.writeFile path $ encodeDefaultOrderedByName empty)
+    doesFileExist path >>= bool (B'.writeFile path $ encodeDefaultOrderedByName empty)
+      (return ())
 
 
 appendEntry :: FilePath -> (UTCTime, UTCTime, String) -> IO ()
