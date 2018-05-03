@@ -23,7 +23,7 @@ printCurrentTime startTime = do
 
 timer :: IO ()
 timer =
-  getCurrentTime >>= (\t -> forever $ printCurrentTime t)
+  getCurrentTime >>= forever . printCurrentTime
 
 
 waitForInterrupt :: IO (MVar ())
