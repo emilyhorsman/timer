@@ -14,16 +14,11 @@ import           System.IO               (BufferMode (NoBuffering),
 import           System.Posix.Signals    (Handler (CatchOnce), installHandler,
                                           sigINT)
 
-printCurrentTime :: Int -> IO ()
-printCurrentTime startTime = do
+tick :: Int -> IO ()
+tick startTime = do
   t <- getCurrentTime
   let dT = t - startTime
   putStr ("\r" ++ formatMicroseconds dT) >> threadDelay 1000000
-
-
-timer :: IO ()
-timer =
-  getCurrentTime >>= forever . printCurrentTime
 
 
 waitForInterrupt :: IO (MVar ())
@@ -47,6 +42,7 @@ getCode = do
 main = do
   code <- getCode
   maybe (die "Usage: <code>") putStrLn code
+  startTime <- getCurrentTime
   hSetBuffering stdout NoBuffering
-  blockUntilInterrupt $ forkIO timer
+  blockUntilInterrupt $ forkIO $ forever $ tick startTime
   putStrLn "\nExiting Main!"
