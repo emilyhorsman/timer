@@ -7,7 +7,7 @@ import           Control.Monad           (forever)
 import           Data.List               (uncons, intercalate)
 import           Data.Maybe              (maybe)
 import           Data.Time               (UTCTime)
-import           Lib                     (Time, formatAbsoluteDate,
+import           Time                     (Time, formatAbsoluteDate,
                                           formatAbsoluteTime, formatDelta,
                                           getCurrentTime)
 import           System.Environment      (getArgs)

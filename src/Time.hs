@@ -1,4 +1,4 @@
-module Lib
+module Time
     ( getCurrentTime
     , Time
     , formatAbsoluteDate
