@@ -46,21 +46,26 @@ getCode = do
   return $ fst <$> uncons args
 
 
-handleCompletion :: UTCTime -> UTCTime -> Maybe String -> IO ()
-handleCompletion _ _ Nothing = return ()
-handleCompletion startTime finishTime (Just code) =
+handleCompletion :: UTCTime -> UTCTime -> String -> IO ()
+handleCompletion startTime finishTime code =
   let
     path = "data.csv"
   in
     createStorage path >> appendEntry path (startTime, finishTime, code)
 
 
-main = do
-  code <- getCode
-  maybe (die "Usage: <code>") putStrLn code
+run :: Maybe String -> IO ()
+run Nothing =
+  die "Usage: <code>"
+run (Just code) = do
+  putStrLn code
   startTime <- getCurrentTime :: IO UTCTime
   hSetBuffering stdout NoBuffering
   blockUntilInterrupt $ forkIO $ forever $ tick startTime
   finishTime <- getCurrentTime :: IO UTCTime
   handleCompletion startTime finishTime code
   putStrLn "\nExiting Main!"
+
+
+main =
+  getCode >>= run
