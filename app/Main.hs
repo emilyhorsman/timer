@@ -17,15 +17,15 @@ import           System.Posix.Signals    (Handler (CatchOnce), installHandler,
 import           Time                    (Time, formatAbsoluteDateTime,
                                           formatDelta, getCurrentTime)
 
-interval :: Int
-interval =
+tickInterval :: Int
+tickInterval =
   100 * 1000
 
 
 tick :: Time a => a -> IO ()
 tick startTime = do
   t <- getCurrentTime
-  putStr ("\r" ++ formatDelta startTime t) >> threadDelay interval
+  putStr ("\r" ++ formatDelta startTime t) >> threadDelay tickInterval
 
 
 waitForInterrupt :: IO (MVar ())
