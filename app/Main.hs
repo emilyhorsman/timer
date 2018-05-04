@@ -3,8 +3,6 @@ module Main where
 import           Control.Concurrent (forkIO, threadDelay)
 import           Control.Monad      (forever)
 import           Data               (appendEntry, createStorage)
-import           Data.List          (intercalate, uncons)
-import           Data.Maybe         (maybe)
 import           Data.Time          (UTCTime)
 import           Interrupt          (blockUntilInterrupt)
 import           System.Environment (getArgs)
@@ -25,12 +23,6 @@ tick startTime = do
   putStr ("\r" ++ formatDelta startTime t) >> threadDelay tickInterval
 
 
-getCode :: IO (Maybe String)
-getCode = do
-  args <- getArgs
-  return $ fst <$> uncons args
-
-
 handleCompletion :: UTCTime -> UTCTime -> String -> IO ()
 handleCompletion startTime finishTime code =
   let
@@ -39,10 +31,8 @@ handleCompletion startTime finishTime code =
     createStorage path >> appendEntry path (startTime, finishTime, code)
 
 
-run :: Maybe String -> IO ()
-run Nothing =
-  die "Usage: <code>"
-run (Just code) = do
+run :: [String] -> IO ()
+run [code] = do
   putStrLn code
   startTime <- getCurrentTime :: IO UTCTime
   hSetBuffering stdout NoBuffering
@@ -50,7 +40,9 @@ run (Just code) = do
   finishTime <- getCurrentTime :: IO UTCTime
   handleCompletion startTime finishTime code
   putStrLn "\nExiting Main!"
+run _ =
+  die "Usage: <code>"
 
 
 main =
-  getCode >>= run
+  getArgs >>= run
