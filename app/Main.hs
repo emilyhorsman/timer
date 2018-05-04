@@ -1,21 +1,18 @@
 module Main where
 
-import           Control.Concurrent      (forkIO, killThread, myThreadId,
-                                          threadDelay)
-import           Control.Concurrent.MVar (MVar, newEmptyMVar, putMVar, takeMVar)
-import           Control.Monad           (forever)
-import           Data                    (appendEntry, createStorage)
-import           Data.List               (intercalate, uncons)
-import           Data.Maybe              (maybe)
-import           Data.Time               (UTCTime)
-import           System.Environment      (getArgs)
-import           System.Exit             (die)
-import           System.IO               (BufferMode (NoBuffering),
-                                          hSetBuffering, stdout)
-import           System.Posix.Signals    (Handler (CatchOnce), installHandler,
-                                          sigINT)
-import           Time                    (Time, formatAbsoluteDateTime,
-                                          formatDelta, getCurrentTime)
+import           Control.Concurrent (forkIO, threadDelay)
+import           Control.Monad      (forever)
+import           Data               (appendEntry, createStorage)
+import           Data.List          (intercalate, uncons)
+import           Data.Maybe         (maybe)
+import           Data.Time          (UTCTime)
+import           Interrupt          (blockUntilInterrupt)
+import           System.Environment (getArgs)
+import           System.Exit        (die)
+import           System.IO          (BufferMode (NoBuffering), hSetBuffering,
+                                     stdout)
+import           Time               (Time, formatAbsoluteDateTime, formatDelta,
+                                     getCurrentTime)
 
 tickInterval :: Int
 tickInterval =
@@ -26,18 +23,6 @@ tick :: Time a => a -> IO ()
 tick startTime = do
   t <- getCurrentTime
   putStr ("\r" ++ formatDelta startTime t) >> threadDelay tickInterval
-
-
-waitForInterrupt :: IO (MVar ())
-waitForInterrupt = do
-  v <- newEmptyMVar
-  installHandler sigINT (CatchOnce (putMVar v ())) Nothing
-  return v
-
-
-blockUntilInterrupt :: IO a -> IO ()
-blockUntilInterrupt computation =
-  waitForInterrupt >>= (\v -> computation >> takeMVar v)
 
 
 getCode :: IO (Maybe String)
